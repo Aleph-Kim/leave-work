@@ -9,6 +9,6 @@ public class MainController {
     @GetMapping
     @ResponseBody
     public String index() {
-        return "Hello Aleph World";
+        return "Hello Aleph World!!";
     }
 }
