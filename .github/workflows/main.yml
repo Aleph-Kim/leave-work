@@ -48,20 +48,14 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/leave-work:${{ github.sha }}
 
       - name: Deploy to server
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan $DEPLOY_SERVER >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/id_rsa $DEPLOY_USER@$DEPLOY_SERVER << EOF
-            docker pull $DOCKER_USERNAME/leave-work:${{ github.sha }}
+          ssh-keyscan ${{ secrets.DEPLOY_SERVER }} >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} << EOF
+            docker pull ${{ secrets.DOCKER_USERNAME }}/leave-work:${{ github.sha }}
             docker stop leave-work || true
             docker rm leave-work || true
-            docker run -d -p 8080:8080 --name leave-work $DOCKER_USERNAME/leave-work:${{ github.sha }}
+            docker run -d -p 8080:8080 --name leave-work ${{ secrets.DOCKER_USERNAME }}/leave-work:${{ github.sha }}
           EOF
