@@ -48,14 +48,14 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/leave-work:${{ github.sha }}
 
       - name: Deploy to server
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan ${{ secrets.DEPLOY_SERVER }} >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} << EOF
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_SERVER }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/leave-work:${{ github.sha }}
             docker stop leave-work || true
             docker rm leave-work || true
             docker run -d -p 8080:8080 --name leave-work ${{ secrets.DOCKER_USERNAME }}/leave-work:${{ github.sha }}
-          EOF
